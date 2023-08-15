@@ -6,6 +6,8 @@ services:
     ports:
       - 9000:9000
       - 9001:9001
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
   prometheus:
     image: prom/prometheus
     ports:
@@ -14,6 +16,7 @@ services:
       - ./prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./prometheus/config/prom_rules.yml:/prometheus/prom_rules.yml
       - ./prometheus/data/prometheus:/prometheus/data
+      - "/etc/localtime:/etc/localtime:ro"
   alertmanager:
     image: prom/alertmanager:latest
     container_name: alertmanager
@@ -25,6 +28,7 @@ services:
       - ./prometheus/config:/config
       - ./prometheus/data/alertmanager:/alertmanager/data
       - ./prometheus/templates:/alertmanager/templates
+      - "/etc/localtime:/etc/localtime:ro"
     command:
       - --config.file=/config/alertmanager.yml
       - --storage.path=/alertmanager/data

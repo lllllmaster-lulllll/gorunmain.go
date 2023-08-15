@@ -27,5 +27,5 @@ scrape_configs:
     static_configs:
       - targets: ['192.168.1.15:9000']
         labels:
-          instance: conanCusGolang
+          instance: iaas
           

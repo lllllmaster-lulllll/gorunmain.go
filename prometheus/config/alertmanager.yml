@@ -3,7 +3,7 @@ global:
   smtp_from: 'kangnan1994@163.com' # 发件人
   smtp_smarthost: 'smtp.163.com:25' # 邮箱服务器的 POP3/SMTP 主机配置 smtp.qq.com 端口为 465 或 587
   smtp_auth_username: 'kangnan1994@163.com' # 用户名
-  smtp_auth_password: 'ULDVCFXVUENMQZVD' # 授权码 
+  smtp_auth_password: 'EBJDYDAXFWOKUCOT' # 授权码 
   # smtp_require_tls: true
   # smtp_hello: 'xxxx'
 templates:
