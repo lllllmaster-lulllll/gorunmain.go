@@ -1,0 +1,44 @@
+---
+version: "3.9"
+services:
+  myapp:
+    build: ./my-app
+    ports:
+      - 9000:9000
+      - 9001:9001
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/config/prom_rules.yml:/prometheus/prom_rules.yml
+      - ./prometheus/data/prometheus:/prometheus/data
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    hostname: alertmanager
+    restart: always
+    ports:
+      - 9093:9093
+    volumes:
+      - ./prometheus/config:/config
+      - ./prometheus/data/alertmanager:/alertmanager/data
+      - ./prometheus/templates:/alertmanager/templates
+    command:
+      - --config.file=/config/alertmanager.yml
+      - --storage.path=/alertmanager/data
+volumes:
+  prometheus:
+  alertmanager:
+
+#   grafana:
+#     image: grafana/grafana:9.3.0
+#     ports:
+#       - 3000:3000
+#     environment:
+#       - GF_SECURITY_ADMIN_USER=admin
+#       - GF_SECURITY_ADMIN_PASSWORD=conan
+#     volumes:
+#       - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+#       - grafana:/var/lib/grafana

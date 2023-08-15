@@ -1,0 +1,31 @@
+---
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - 192.168.1.15:9093
+
+rule_files:
+  - /prometheus/prom_rules.yml
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['192.168.1.15:9090']
+        labels:
+          instance: prometheus
+  # - job_name: "grafana"    #待修改host名
+  #   static_configs:
+  #     - targets: ['192.168.1.15:9100']
+  #       labels:
+  #         instance: local
+  - job_name: myapp    #待修改host名
+    static_configs:
+      - targets: ['192.168.1.15:9000']
+        labels:
+          instance: conanCusGolang
+          
