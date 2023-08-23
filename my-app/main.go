@@ -1,73 +1,42 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
+	"icego/tools"
 	"log"
 	"net/http"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/spf13/cast"
 )
 
-func init() {
-	version = "2.10.5"
-	dvs = []Device{
-		{
-			ID:       1,
-			Mac:      "00:00:00:00:00:01",
-			Firmware: "3.1.1",
-		},
-		{
-			ID:       2,
-			Mac:      "00:00:00:00:00:02",
-			Firmware: "3.1.2",
-		},
-		{
-			ID:       3,
-			Mac:      "00:00:00:00:00:03",
-			Firmware: "3.1.3",
-		},
-		{
-			ID:       4,
-			Mac:      "00:00:00:00:00:04",
-			Firmware: "3.1.4",
-		},
-	}
-
-}
-
-var dvs []Device
-var version string
-
-type Device struct {
-	ID int `json:"id"`
-
-	Mac string `json:"mac"`
-
-	Firmware string `json:"firmware"`
-}
-
 type metrics struct {
-	devices prometheus.Gauge
-	info    *prometheus.GaugeVec
+	thirdDownService *prometheus.GaugeVec
+	thirdLiveService *prometheus.GaugeVec
 }
 
 func NewMetrics(reg prometheus.Registerer) *metrics {
 	m := &metrics{
-		devices: prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: "myapp",
-			Name:      "devices",
-			Help:      "Number of devices.",
-		}),
-		info: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Namespace: "myapp",
-			Name:      "info",
-			Help:      "Information about the My App environment.",
+		thirdDownService: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: "polaris_iaas",
+			Name:      "down_services",
+			Help:      "瀚海云第三方宕机服务",
 		},
-			[]string{"version", "version02", "version03", "version04"},
+			[]string{"third_down_services", "third_down_services_name", "instance"},
+		),
+		thirdLiveService: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: "polaris_iaas",
+			Name:      "live_services",
+			Help:      "瀚海云第三方正常服务",
+		},
+			[]string{"third_live_services"},
 		),
 	}
-	reg.MustRegister(m.devices, m.info)
+	reg.MustRegister(m.thirdDownService, m.thirdLiveService)
 
 	return m
 }
@@ -75,17 +44,66 @@ func NewMetrics(reg prometheus.Registerer) *metrics {
 func main() {
 	reg := prometheus.NewRegistry()
 	m := NewMetrics(reg)
-	m.devices.Set(float64(len(dvs)))
-	version02 := "3.1.1"
-	version03 := "3.1.2"
-	version04 := "3.1.3"
-	m.info.With(prometheus.Labels{"version": version, "version02": version02, "version03": version03, "version04": version04}).Set(1)
+	addrPort := make(map[string]string)
+
+	// 添加需要探测的服务
+	addrPort["local_redis"] = "192.168.1.15:6379"
+	addrPort["local_prometheus"] = "192.168.1.15:9000"
+
+	thirdDownService := make([]string, 0)
+	thirdLiveService := make([]string, 0)
+	thirdDownServiceName := make([]string, 0)
+
+	for index, api := range addrPort {
+		strList := strings.Split(api, ":")
+		apilen := len(strList)
+		if apilen != 2 {
+			log.Println("api format error, api:", api)
+			continue
+		}
+		addr := strList[0]
+		port, err := cast.ToIntE(strList[1])
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		live, err := tools.DetectService(addr, port, time.Second)
+		if err != nil {
+			log.Println(err)
+		}
+		if !live {
+			thirdDownServiceName = append(thirdDownServiceName, index)
+			thirdDownService = append(thirdDownService, fmt.Sprintf("%s服务->%s:%d", index, addr, port))
+		} else {
+			thirdLiveService = append(thirdLiveService, fmt.Sprintf("%s服务->%s:%d", index, addr, port))
+		}
+
+	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Println(err)
+	}
+	if len(thirdDownService) == 0 {
+		m.thirdDownService.With(prometheus.Labels{"third_down_services": ""}).Set(0)
+	} else {
+		m.thirdDownService.With(prometheus.Labels{
+			"third_down_services":      strings.Join(thirdDownService, "  "),
+			"third_down_services_name": strings.Join(thirdDownServiceName, "  "),
+			"instance":                 hostname,
+		}).Set(1)
+	}
+
+	if len(thirdLiveService) == 0 {
+		m.thirdLiveService.With(prometheus.Labels{"third_live_services": ""}).Set(0)
+	} else {
+		m.thirdLiveService.With(prometheus.Labels{"third_live_services": strings.Join(thirdLiveService, "  ")}).Set(1)
+	}
+
 	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 	// http.Handle("/metrics", promHandler)
 	// http.HandleFunc("/devices", getDevices)
 	// http.ListenAndServe(":9000", nil)
-	dMux := http.NewServeMux()
-	dMux.HandleFunc("/devices", getDevices)
 
 	pMux := http.NewServeMux()
 	pMux.Handle("/metrics", promHandler)
@@ -94,18 +112,5 @@ func main() {
 		log.Fatal(http.ListenAndServe(":9000", pMux))
 	}()
 
-	go func() {
-		log.Fatal(http.ListenAndServe(":9001", dMux))
-	}()
-
 	select {}
-}
-func getDevices(w http.ResponseWriter, r *http.Request) {
-	b, err := json.Marshal(dvs)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(b)
 }

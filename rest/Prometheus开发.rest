@@ -1,23 +1,12 @@
 # 全局变量
-@host=127.0.0.1
+@host=192.168.1.15
 @port=9000
 @port2=9001
 
 ### Prometheus开发
-GET  /devices
-Host: {{host}}:{{port2}}
-Content-Type: application/json
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36
 
-
-###
 POST /metrics
 Host: {{host}}:{{port}}
 Content-Type: application/json
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36
 
-{
-    "id":3,
-    "mac":"45-67-ab-ff",
-    "firmware":"9.0.0"
-}
