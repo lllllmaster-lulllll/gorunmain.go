@@ -1,0 +1,62 @@
+---
+version: "3.9"
+services:
+  myapp:
+    build: ./
+    ports:
+      - 9000:9000
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/config/prom_rules.yml:/prometheus/prom_rules.yml
+      - ./prometheus/data/prometheus:/prometheus/data
+      - "/etc/localtime:/etc/localtime:ro"
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    hostname: alertmanager
+    restart: always
+    ports:
+      - 9093:9093
+    volumes:
+      - ./prometheus/config:/config
+      - ./prometheus/data/alertmanager:/alertmanager/data
+      - ./prometheus/templates:/alertmanager/templates
+      - "/etc/localtime:/etc/localtime:ro"
+    command:
+      - --config.file=/config/alertmanager.yml
+      - --storage.path=/alertmanager/data
+  # my_redis:
+  #   image: redis
+  #   container_name: my_redis # 容器名称
+  #   restart: always # 重启方式
+  #   environment:
+  #     - TZ=Asia/Shanghai # 设置时区
+  #   volumes: # 配置数据卷
+  #     - ./redis/data:/data
+  #     - ./redis/redis.conf:/etc/redis/redis.conf
+  #     - ./redis/logs:/logs
+  #   ports: # 映射端口
+  #     - 6379:6379
+  #   command: /bin/sh -c redis-server /etc/redis/redis.conf --appendonly yes # 指定配置文件并开启持久化
+  #   # privileged: true # 使用该参数，container内的root拥有真正的root权限。否则，container内的root只是外部的一个普通用户权限
+
+volumes:
+  prometheus:
+  alertmanager:
+
+#   grafana:
+#     image: grafana/grafana:9.3.0
+#     ports:
+#       - 3000:3000
+#     environment:
+#       - GF_SECURITY_ADMIN_USER=admin
+#       - GF_SECURITY_ADMIN_PASSWORD=conan
+#     volumes:
+#       - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+#       - grafana:/var/lib/grafana

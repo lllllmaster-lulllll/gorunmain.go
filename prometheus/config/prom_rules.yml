@@ -1,0 +1,20 @@
+groups:
+- name: server-down-rule
+  rules:
+  - alert: ServerDownAlert
+    expr: polaris_iaas_down_services == 1
+    for: 30s
+    labels:
+      severity: email
+    annotations:
+        summary: "宕机超过 30s 的服务包括: {{ $labels.third_down_services_name }}"
+        description: "瀚海云 polaris_iaas 调用第三方服务: {{ $labels.third_down_services }} 宕机时间超过 30 秒钟"
+  # - alert: 瀚海云第三方服务宕机告警
+  #   expr: polaris_iaas_down_services == 1
+  #   for: 30s
+  #   labels:
+  #     severity: lanxinmail
+  #     recvGroup: clouddev
+  #   annotations:
+  #     summary: "宕机超过 30s 的服务包括: {{ $labels.third_down_services }}"
+  #     description: "project={{ $labels.project }} app={{ $labels.app }}"
