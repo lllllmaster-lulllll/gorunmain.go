@@ -7,15 +7,15 @@
            <table border="1" style="border:5px solid #F2F2F2;" cellspacing="4" cellpadding="3" width="650" style="table-layout:fixed">
          <tr> 
 			<th align="left"><b>告警项</b></marquee></th> 
-			<th align="left"><b>内容信息</b></marquee></th> 
+			<th align="center"><b>内容信息</b></marquee></th> 
 		 </tr>  		
 			<tr>
 			<td align="left" style="font-family:微软雅黑; width: 15%" style="WORD-WRAP:break-word">告警标题</td>
-			<td align="left" bgcolor="ff0000" style="font-family:微软雅黑; width: 60%" style="WORD-WRAP:break-word">{{ .Annotations.summary }}</td>
+			<td align="left" style="font-family:微软雅黑; width: 60%" style="WORD-WRAP:break-word">瀚海云第三方服务宕机告警</td>
 			</tr>
 			<tr>
 			<td align="left" style="font-family:微软雅黑; size=5;width: 20%" style="WORD-WRAP:break-word">告警描述</td>
-			<td align="left" bgcolor="ff0000" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Annotations.summary }}</td>
+			<td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word"><span>{{ .Annotations.summary }}</span></td>
 			</tr>
 			<tr>
 			<td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">告警等级</td>
@@ -26,8 +26,8 @@
 			<td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .StartsAt.Local.Format "2006-01-02 15:04:05" }}</td>
 			</tr>
 			<tr>
-			<td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">告警主机</td>
-			<td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word">{{ .Labels.instance }}</td>
+			<td align="left" style="font-family:微软雅黑;width: 20%" style="WORD-WRAP:break-word">告警服务</td>
+			<td align="left" style="font-family:微软雅黑;width: 80%" style="WORD-WRAP:break-word"><span>{{ .Annotations.description }}</span></td>
 			</tr>
              </table> 
      </body> 

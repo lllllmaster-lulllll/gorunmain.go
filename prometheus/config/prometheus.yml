@@ -23,9 +23,14 @@ scrape_configs:
   #     - targets: ['192.168.1.15:9100']
   #       labels:
   #         instance: local
-  - job_name: myapp    #待修改host名
+  - job_name: myapp
     static_configs:
       - targets: ['192.168.1.15:9000']
         labels:
-          instance: conanCusGolang
-          
+          app: prometheus线上服务监控
+  # - job_name: third_down_servers
+  #   static_configs:
+  #     - targets: ['10.41.208.135:8084']
+  #       labels:
+  #         app: 瀚海云线上服务监控
+  #         project: 瀚海云

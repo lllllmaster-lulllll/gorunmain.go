@@ -2,15 +2,19 @@ From golang:1.21.0 AS builder
 
 WORKDIR /app
 
+ENV GO111MODULE=on \
+    GOPROXY=https://goproxy.cn,direct \
+    CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64
+
 COPY go.mod go.sum ./
-ENV GOPROXY https://goproxy.cn
-ENV CGO_ENABLED 0 
-ENV GOARCH amd64
-ENV GOOS linux
 
 RUN go mod download && go mod verify
 
-COPY main.go ./
+COPY . .
+
+RUN go mod tidy
 
 RUN go build -o /my-app
 
